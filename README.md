@@ -1,155 +1,204 @@
-# qwen.cpp
+# Simple GPT-2 Transformer Implementation
 
-C++ implementation of [Qwen-LM](https://github.com/QwenLM/Qwen) for real-time chatting on your MacBook.
-
-## Updates
-- **`2023/12/05`** qwen was merged to [llama.cpp](https://github.com/ggerganov/llama.cpp/pull/4281) and supports gguf format.
+A clean, educational implementation of a GPT-2 like transformer model in PyTorch.
 
 ## Features
 
-Highlights:
-* [x] Pure C++ implementation based on [ggml](https://github.com/ggerganov/ggml), working in the same way as [llama.cpp](https://github.com/ggerganov/llama.cpp).
-* [x] Pure C++ tiktoken implementation.
-* [x] Streaming generation with typewriter effect.
-* [x] Python binding.
+- 🤖 **Complete GPT-2 Architecture**: Multi-head attention, feed-forward networks, layer normalization
+- 🎯 **Causal Language Modeling**: Autoregressive text generation with causal masking
+- 🔧 **Flexible Configuration**: Customizable model size, layers, heads, and vocabulary
+- 📚 **Educational**: Well-commented code for learning transformer internals
+- 🚀 **Ready to Use**: Includes training and inference scripts
 
-Support Matrix:
-* Hardwares: x86/arm CPU, NVIDIA GPU
-* Platforms: Linux, MacOS
-* Models: [Qwen-LM](https://github.com/QwenLM/Qwen)
+## Model Architecture
 
-## Getting Started
+The implementation includes:
 
-**Preparation**
+- **Multi-Head Attention**: Scaled dot-product attention with multiple heads
+- **Feed-Forward Networks**: Position-wise feed-forward layers with GELU activation
+- **Layer Normalization**: Pre-norm architecture for stable training
+- **Positional Embeddings**: Learned positional encodings
+- **Causal Masking**: Autoregressive generation with causal attention masks
 
-Clone the qwen.cpp repository into your local machine:
-```sh
-git clone --recursive https://github.com/QwenLM/qwen.cpp && cd qwen.cpp
+## Quick Start
+
+### Installation
+
+```bash
+pip install -r requirements.txt
 ```
 
-If you forgot the `--recursive` flag when cloning the repository, run the following command in the `qwen.cpp` folder:
-```sh
-git submodule update --init --recursive
+### Run Demo
+
+```bash
+python demo.py
 ```
 
-Download the qwen.tiktoken file from [Hugging Face](https://huggingface.co/Qwen/Qwen-7B-Chat/blob/main/qwen.tiktoken) or [modelscope](https://modelscope.cn/models/qwen/Qwen-7B-Chat/files).
+### Basic Usage
 
-**Quantize Model**
-
-Use `convert.py` to transform Qwen-LM into quantized GGML format. For example, to convert the fp16 original model to q4_0 (quantized int4) GGML model, run:
-```sh
-python3 qwen_cpp/convert.py -i Qwen/Qwen-7B-Chat -t q4_0 -o qwen7b-ggml.bin
-```
-
-The original model (`-i <model_name_or_path>`) can be a HuggingFace model name or a local path to your pre-downloaded model. Currently supported models are:
-* Qwen-7B: `Qwen/Qwen-7B-Chat`
-* Qwen-14B: `Qwen/Qwen-14B-Chat`
-
-You are free to try any of the below quantization types by specifying `-t <type>`:
-* `q4_0`: 4-bit integer quantization with fp16 scales.
-* `q4_1`: 4-bit integer quantization with fp16 scales and minimum values.
-* `q5_0`: 5-bit integer quantization with fp16 scales.
-* `q5_1`: 5-bit integer quantization with fp16 scales and minimum values.
-* `q8_0`: 8-bit integer quantization with fp16 scales.
-* `f16`: half precision floating point weights without quantization.
-* `f32`: single precision floating point weights without quantization.
-
-**Build & Run**
-
-Compile the project using CMake:
-```sh
-cmake -B build
-cmake --build build -j --config Release
-```
-
-Now you may chat with the quantized Qwen-7B-Chat model by running:
-```sh
-./build/bin/main -m qwen7b-ggml.bin --tiktoken Qwen-7B-Chat/qwen.tiktoken -p 你好
-# 你好！很高兴为你提供帮助。
-```
-
-To run the model in interactive mode, add the `-i` flag. For example:
-```sh
-./build/bin/main -m qwen7b-ggml.bin --tiktoken Qwen-7B-Chat/qwen.tiktoken -i
-```
-In interactive mode, your chat history will serve as the context for the next-round conversation.
-
-Run `./build/bin/main -h` to explore more options!
-
-## Using BLAS
-
-**OpenBLAS**
-
-OpenBLAS provides acceleration on CPU. Add the CMake flag `-DGGML_OPENBLAS=ON` to enable it.
-```sh
-cmake -B build -DGGML_OPENBLAS=ON && cmake --build build -j
-```
-
-**cuBLAS**
-
-cuBLAS uses NVIDIA GPU to accelerate BLAS. Add the CMake flag `-DGGML_CUBLAS=ON` to enable it.
-```sh
-cmake -B build -DGGML_CUBLAS=ON && cmake --build build -j
-```
-
-**Metal**
-
-MPS (Metal Performance Shaders) allows computation to run on powerful Apple Silicon GPU. Add the CMake flag `-DGGML_METAL=ON` to enable it.
-```sh
-cmake -B build -DGGML_METAL=ON && cmake --build build -j
-```
-
-## Python Binding
-
-The Python binding provides high-level `chat` and `stream_chat` interface similar to the original Hugging Face Qwen-7B.
-
-**Installation**
-
-Install from PyPI (recommended): will trigger compilation on your platform.
-```sh
-pip install -U qwen-cpp
-```
-
-You may also install from source.
-```sh
-# install from the latest source hosted on GitHub
-pip install git+https://github.com/QwenLM/qwen.cpp.git@master
-# or install from your local source after git cloning the repo
-pip install .
-```
-
-## tiktoken.cpp
-
-We provide pure C++ tiktoken implementation. After installation, the usage is the same as openai tiktoken:
 ```python
-import tiktoken_cpp as tiktoken
-enc = tiktoken.get_encoding("cl100k_base")
-assert enc.decode(enc.encode("hello world")) == "hello world"
+from gpt2_model import GPT2Model
+import torch
+
+# Create model
+model = GPT2Model(
+    vocab_size=50257,  # GPT-2 vocab size
+    d_model=768,       # Hidden dimension
+    num_heads=12,      # Number of attention heads
+    num_layers=12,     # Number of transformer blocks
+    max_seq_length=1024,
+    d_ff=3072          # Feed-forward dimension
+)
+
+# Generate text
+input_ids = torch.randint(0, 50257, (1, 10))
+generated = model.generate(
+    input_ids, 
+    max_new_tokens=50, 
+    temperature=0.8,
+    top_k=50
+)
 ```
 
-**Benchmark**
+## Training
 
-The speed of tiktoken.cpp is on par with openai tiktoken:
+Train the model on your own data:
+
+```bash
+python train.py
+```
+
+The training script includes:
+- Data loading and preprocessing
+- Training loop with validation
+- Gradient clipping and learning rate scheduling
+- Model checkpointing
+
+## Model Configurations
+
+### Small Model (Demo)
 ```python
-cd tests
-RAYON_NUM_THREADS=1 python benchmark.py
+model = GPT2Model(
+    vocab_size=256,
+    d_model=256,
+    num_heads=8,
+    num_layers=4,
+    max_seq_length=128,
+    d_ff=1024
+)
+# ~2M parameters
 ```
 
-## Development
-
-**Unit Test**
-
-To perform unit tests, add this CMake flag `-DQWEN_ENABLE_TESTING=ON` to enable testing. Recompile and run the unit test (including benchmark).
-```sh
-mkdir -p build && cd build
-cmake .. -DQWEN_ENABLE_TESTING=ON && make -j
-./bin/qwen_test
+### GPT-2 Small
+```python
+model = GPT2Model(
+    vocab_size=50257,
+    d_model=768,
+    num_heads=12,
+    num_layers=12,
+    max_seq_length=1024,
+    d_ff=3072
+)
+# ~124M parameters
 ```
 
-**Lint**
+### GPT-2 Medium
+```python
+model = GPT2Model(
+    vocab_size=50257,
+    d_model=1024,
+    num_heads=16,
+    num_layers=24,
+    max_seq_length=1024,
+    d_ff=4096
+)
+# ~350M parameters
+```
 
-To format the code, run `make lint` inside the `build` folder. You should have `clang-format`, `black` and `isort` pre-installed.
+## Files
 
-## Acknowledgements
+- `gpt2_model.py` - Main model implementation
+- `train.py` - Training script with custom trainer class
+- `demo.py` - Simple demonstration script
+- `requirements.txt` - Package dependencies
 
-* This project is greatly inspired by [llama.cpp](https://github.com/ggerganov/llama.cpp), [chatglm.cpp](https://github.com/li-plus/chatglm.cpp), [ggml](https://github.com/ggerganov/ggml), [tiktoken](https://github.com/openai/tiktoken), [tokenizer](https://github.com/sewenew/tokenizer), [cpp-base64](https://github.com/ReneNyffenegger/cpp-base64), [re2](https://github.com/google/re2) and [unordered_dense](https://github.com/martinus/unordered_dense).
+## Implementation Details
+
+### Multi-Head Attention
+- Scaled dot-product attention
+- Causal masking for autoregressive generation
+- Dropout for regularization
+
+### Feed-Forward Networks
+- Two linear layers with GELU activation
+- Dropout for regularization
+
+### Training Features
+- AdamW optimizer with weight decay
+- Cosine annealing learning rate schedule
+- Gradient clipping
+- Mixed precision training ready
+
+### Text Generation
+- Top-k sampling
+- Temperature scaling
+- Causal mask enforcement
+
+## Performance
+
+The implementation is optimized for:
+- **Memory efficiency**: Efficient attention computation
+- **Training stability**: Pre-norm architecture and gradient clipping
+- **Generation quality**: Proper causal masking and sampling strategies
+
+## Examples
+
+### Forward Pass
+```python
+# Forward pass
+input_ids = torch.randint(0, vocab_size, (batch_size, seq_length))
+logits = model(input_ids)
+# Shape: (batch_size, seq_length, vocab_size)
+```
+
+### Text Generation
+```python
+# Generate text
+prompt = torch.tensor([[1, 2, 3, 4, 5]])  # Your prompt tokens
+generated = model.generate(
+    prompt,
+    max_new_tokens=100,
+    temperature=0.7,
+    top_k=40
+)
+```
+
+## Requirements
+
+- Python 3.7+
+- PyTorch 2.0+
+- NumPy
+- tqdm (for training progress)
+
+## License
+
+This project is provided for educational purposes. Feel free to use and modify.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## Acknowledgments
+
+This implementation is inspired by:
+- Original GPT-2 paper: "Language Models are Unsupervised Multitask Learners"
+- Attention mechanism from "Attention Is All You Need"
+- Various open-source transformer implementations
+
+## Todo
+
+- [ ] Add more sophisticated tokenization
+- [ ] Implement beam search decoding
+- [ ] Add model parallel training
+- [ ] Integration with Hugging Face tokenizers
+- [ ] Add more pre-trained model configurations
