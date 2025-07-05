@@ -153,3 +153,24 @@ To format the code, run `make lint` inside the `build` folder. You should have `
 ## Acknowledgements
 
 * This project is greatly inspired by [llama.cpp](https://github.com/ggerganov/llama.cpp), [chatglm.cpp](https://github.com/li-plus/chatglm.cpp), [ggml](https://github.com/ggerganov/ggml), [tiktoken](https://github.com/openai/tiktoken), [tokenizer](https://github.com/sewenew/tokenizer), [cpp-base64](https://github.com/ReneNyffenegger/cpp-base64), [re2](https://github.com/google/re2) and [unordered_dense](https://github.com/martinus/unordered_dense).
+
+# GitHub Access Test Repository
+
+This is a test repository to verify GitHub access and authentication.
+
+## Purpose
+
+- Test git configuration
+- Verify GitHub authentication
+- Test repository creation and push operations
+
+## Test Information
+
+- Created: $(date)
+- System: Linux environment
+- Git user: Cursor Agent
+
+## Status
+
+✅ Repository created successfully
+⏳ Testing GitHub push access...
